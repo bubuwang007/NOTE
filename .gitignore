@@ -1,0 +1,14 @@
+# temp ignore
+*.tmp
+*.log
+*.cache
+*.diff
+*.patch
+
+# python
+__pycache__
+.pytest_cache
+
+# vscode
+.VSCodeCounter
+.vscode
