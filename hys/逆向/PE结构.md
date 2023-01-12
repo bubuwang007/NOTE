@@ -307,6 +307,18 @@ IMAGE_OPTIONAL_HEADER32 : 0x10B
 
 IMAGE_OPTIONAL_HEADER64 : 0x20B
 
+**AddressOfEntryPoint**
+
+持有EP的RVA值。指出程序最先执行的代码起始位置。
+
+**ImageBase**
+
+进程虚拟内存的范围是0x0 ~ 0xFFFFFFFF (32位)，PE文件被加载到内存中，优先装入ImageBase所指出文件优先装入地址。
+
+exe、dll文件被装载到用户内存 0x80000000 ~ 0xFFFFFFFF中。一般而言，32位的exe程序ImageBase为0x00400000，dll文件的
+
+
+
 
 
 ### 参考

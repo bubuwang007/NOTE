@@ -11,7 +11,12 @@ void characteristics(WORD characteristics);
 int main()
 {
     // 打开文件 helloworld1.exe KeyHook.dll
-    FILE *fp = fopen("helloworld.exe", "r");
+    char * path[] = {
+        "helloworld.exe",
+        "helloworld1.exe",
+        "KeyHook.dll"
+    };
+    FILE *fp = fopen(path[0], "r");
 
     // 读取文件头
     IMAGE_DOS_HEADER dos_header;
@@ -60,6 +65,7 @@ int main()
         printf("Magic:%04x\n", nt_optional_header.Magic);
         printf("IMAGE_OPTIONAL_HEADER32\n");
         printf("AddressOfEntryPoint:0x%08x\n", nt_optional_header.AddressOfEntryPoint);
+        printf("ImageBase:0x%08x\n", nt_optional_header.ImageBase);
     }
     else if (nt_file_header.SizeOfOptionalHeader == 0xf0)
     {
@@ -70,6 +76,7 @@ int main()
         printf("Magic:%04x\n", nt_optional_header->Magic);
         printf("IMAGE_OPTIONAL_HEADER64\n");
         printf("AddressOfEntryPoint:0x%08x\n", nt_optional_header->AddressOfEntryPoint);
+        printf("ImageBase:0x%016llx\n", nt_optional_header->ImageBase);
     }
 
     fclose(fp);
