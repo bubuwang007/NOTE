@@ -16,7 +16,7 @@ int main()
         "helloworld1.exe",
         "KeyHook.dll"
     };
-    FILE *fp = fopen(path[0], "r");
+    FILE *fp = fopen(path[2], "r");
 
     // 读取文件头
     IMAGE_DOS_HEADER dos_header;
@@ -55,7 +55,6 @@ int main()
     characteristics(nt_file_header.Characteristics);
 
     // 根据nt_file_header.SizeOfOptionalHeader的大小来判断是32位还是64位
-
     if (nt_file_header.SizeOfOptionalHeader == 0xe0)
     {
         printf("-----------------------------\n");
@@ -66,6 +65,12 @@ int main()
         printf("IMAGE_OPTIONAL_HEADER32\n");
         printf("AddressOfEntryPoint:0x%08x\n", nt_optional_header.AddressOfEntryPoint);
         printf("ImageBase:0x%08x\n", nt_optional_header.ImageBase);
+        printf("SectionAlignment:0x%08x\n", nt_optional_header.SectionAlignment);
+        printf("FileAlignment:0x%08x\n", nt_optional_header.FileAlignment);
+        printf("SizeOfImage:0x%08x\n", nt_optional_header.SizeOfImage);
+        printf("SizeOfHeaders:0x%08x\n", nt_optional_header.SizeOfHeaders);
+        printf("Subsystem:0x%04x\n", nt_optional_header.Subsystem);
+        printf("NumberOfRvaAndSizes:0x%04x\n", nt_optional_header.NumberOfRvaAndSizes);
     }
     else if (nt_file_header.SizeOfOptionalHeader == 0xf0)
     {
@@ -77,7 +82,44 @@ int main()
         printf("IMAGE_OPTIONAL_HEADER64\n");
         printf("AddressOfEntryPoint:0x%08x\n", nt_optional_header->AddressOfEntryPoint);
         printf("ImageBase:0x%016llx\n", nt_optional_header->ImageBase);
+        printf("SectionAlignment:0x%08x\n", nt_optional_header->SectionAlignment);
+        printf("FileAlignment:0x%08x\n", nt_optional_header->FileAlignment);
+        printf("SizeOfImage:0x%08x\n", nt_optional_header->SizeOfImage);
+        printf("SizeOfHeaders:0x%08x\n", nt_optional_header->SizeOfHeaders);
+        printf("Subsystem:0x%04x\n", nt_optional_header->Subsystem);
+        printf("Subsystem:0x%04x\n", nt_optional_header->Subsystem);
+        printf("NumberOfRvaAndSizes:0x%04x\n", nt_optional_header->NumberOfRvaAndSizes);
     }
+
+    // 节区头
+    printf("-----------------------------\n");
+    printf("IMAGE_SECTION_HEADER\n");
+    printf("-----------------------------\n");
+
+    // 定位到节区头
+    if(nt_file_header.SizeOfOptionalHeader == 0xe0){
+        fseek(fp, dos_header.e_lfanew + sizeof(IMAGE_NT_HEADERS32), SEEK_SET);
+    }else if(nt_file_header.SizeOfOptionalHeader == 0xf0){
+        fseek(fp, dos_header.e_lfanew + sizeof(IMAGE_NT_HEADERS64), SEEK_SET);
+    }
+
+    IMAGE_SECTION_HEADER section_header;
+    
+    for (int i = 0; i < nt_file_header.NumberOfSections; i++)
+    {
+        fread(&section_header, sizeof(IMAGE_SECTION_HEADER), 1, fp);
+        printf("Name:%s\n", section_header.Name);
+        printf("VirtualSize:0x%08x\n", section_header.Misc.VirtualSize);
+        printf("VirtualAddress:0x%08x\n", section_header.VirtualAddress);
+        printf("SizeOfRawData:0x%08x\n", section_header.SizeOfRawData);
+        printf("PointerToRawData:0x%08x\n", section_header.PointerToRawData);
+        printf("PointerToRelocations:0x%08x\n", section_header.PointerToRelocations);
+        printf("PointerToLinenumbers:0x%08x\n", section_header.PointerToLinenumbers);
+        printf("NumberOfRelocations:0x%04x\n", section_header.NumberOfRelocations);
+        printf("NumberOfLinenumbers:0x%04x\n", section_header.NumberOfLinenumbers);
+        printf("Characteristics:0x%08x\n", section_header.Characteristics);
+    }
+
 
     fclose(fp);
 }

@@ -213,11 +213,6 @@ NT文件头的最后一个成员为IMAGE_OPTIONAL_HEADER32，SizeOfOptionalHeade
 ##### NT可选头
 
 ~~~c
-typedef struct _IMAGE_DATA_DIRECTORY {
-    DWORD   VirtualAddress;
-    DWORD   Size;
-} IMAGE_DATA_DIRECTORY, *PIMAGE_DATA_DIRECTORY;
-
 #define IMAGE_NUMBEROF_DIRECTORY_ENTRIES    16
 
 //
@@ -316,6 +311,171 @@ IMAGE_OPTIONAL_HEADER64 : 0x20B
 进程虚拟内存的范围是0x0 ~ 0xFFFFFFFF (32位)，PE文件被加载到内存中，优先装入ImageBase所指出文件优先装入地址。
 
 exe、dll文件被装载到用户内存 0x80000000 ~ 0xFFFFFFFF中。一般而言，32位的exe程序ImageBase为0x00400000，dll文件的
+
+ImageBase的地址是0x10000000 (可以指定为其他值)。
+
+执行PE文件时，PE装载器先创建进程，再将文件载入内存，然后把EIP寄存器的值设置为ImageBase+AddressOfEntryPoint。
+
+**SectionAlignment**
+
+节区在内存中的最小单位。自己电脑使用cl测试下x86 32和amd 64位程序都为 0x1000。
+
+**FileAlignment**
+
+节区在磁盘中的最小单位。自己电脑使用cl测试下x86 32和amd 64位程序都为 0x200。
+
+**SizeOfImage**
+
+PE Image在虚拟内存中的空间。
+
+**SizeOfHeaders**
+
+PE头的大小，必须是FileAlignment的整数倍。
+
+**Subsystem**
+
+|  值  |     含义     |        备注         |
+| :--: | :----------: | :-----------------: |
+|  1   |  Driver文件  | 系统驱动 (ntfs.sys) |
+|  2   | GUI文件、dll |        窗口         |
+|  3   |   CUI文件    |       控制台        |
+
+**NumberOfRvaAndSize**
+
+用来指定DataDirectory数组的个数
+
+**DataDirectory**
+
+由IMAGE_DATA_DIRECTORY结构体组成的数组。
+
+~~~c
+typedef struct _IMAGE_DATA_DIRECTORY {
+    DWORD   VirtualAddress;
+    DWORD   Size;
+} IMAGE_DATA_DIRECTORY, *PIMAGE_DATA_DIRECTORY;
+
+DataDirectory[0] = EXPORT Directory
+DataDirectory[1] = IMPORT Directory
+DataDirectory[2] = RESOURCE Directory
+DataDirectory[3] = EXCEPTION Directory
+DataDirectory[4] = SECURITY Directory
+DataDirectory[5] = BASERELOC Directory
+DataDirectory[6] = DEBUG Directory
+DataDirectory[7] = COPYRIGHT Directory
+DataDirectory[8] = GLOBAL PTR Directory
+DataDirectory[9] = TLS Directory
+DataDirectory[A] = LOAD_CONFIG Directory
+DataDirectory[B] = BOUND_IMPORT Directory
+DataDirectory[C] = IAT Directory
+DataDirectory[D] = DELAY_IMPORT Directory
+DataDirectory[E] = COM_DESCRIPTOR Directory
+DataDirectory[F] = Reserved Directory
+~~~
+
+重点关注 EXPORT Directory、IMPORT Directory、RESOURCE Directory、TLS Directory。
+
+
+
+##### 节区头
+
+PE文件中的code、data、resource按属性分类存储在不同节区。
+
+|   类别   |     访问权限     |
+| :------: | :--------------: |
+|   code   |     读取权限     |
+|   data   | 非执行、读写权限 |
+| resource | 非执行、读取权限 |
+
+IMAGE_SECTION_HEADER
+
+~~~
+#define IMAGE_SIZEOF_SHORT_NAME              8
+
+typedef struct _IMAGE_SECTION_HEADER {
+    BYTE    Name[IMAGE_SIZEOF_SHORT_NAME];
+    union {
+            DWORD   PhysicalAddress;
+            DWORD   VirtualSize;
+    } Misc;
+    DWORD   VirtualAddress;
+    DWORD   SizeOfRawData;
+    DWORD   PointerToRawData;
+    DWORD   PointerToRelocations;
+    DWORD   PointerToLinenumbers;
+    WORD    NumberOfRelocations;
+    WORD    NumberOfLinenumbers;
+    DWORD   Characteristics;
+} IMAGE_SECTION_HEADER, *PIMAGE_SECTION_HEADER;
+~~~
+
+重要成员(其他成员不使用)
+
+|       项目       |          含义          |
+| :--------------: | :--------------------: |
+|   VirtualSize    |     内存中节区大小     |
+|  VirtualAddress  |   内存中节区起始地址   |
+|  SizeOfRawData   |   磁盘文件中节区大小   |
+| PointerToRawData | 磁盘文件中节区起始位置 |
+|  Charateristics  |        节区属性        |
+
+~~~
+// Section characteristics.
+//
+//      IMAGE_SCN_TYPE_REG                   0x00000000  // Reserved.
+//      IMAGE_SCN_TYPE_DSECT                 0x00000001  // Reserved.
+//      IMAGE_SCN_TYPE_NOLOAD                0x00000002  // Reserved.
+//      IMAGE_SCN_TYPE_GROUP                 0x00000004  // Reserved.
+#define IMAGE_SCN_TYPE_NO_PAD                0x00000008  // Reserved.
+//      IMAGE_SCN_TYPE_COPY                  0x00000010  // Reserved.
+
+#define IMAGE_SCN_CNT_CODE                   0x00000020  // Section contains code.
+#define IMAGE_SCN_CNT_INITIALIZED_DATA       0x00000040  // Section contains initialized data.
+#define IMAGE_SCN_CNT_UNINITIALIZED_DATA     0x00000080  // Section contains uninitialized data.
+
+#define IMAGE_SCN_LNK_OTHER                  0x00000100  // Reserved.
+#define IMAGE_SCN_LNK_INFO                   0x00000200  // Section contains comments or some other type of information.
+//      IMAGE_SCN_TYPE_OVER                  0x00000400  // Reserved.
+#define IMAGE_SCN_LNK_REMOVE                 0x00000800  // Section contents will not become part of image.
+#define IMAGE_SCN_LNK_COMDAT                 0x00001000  // Section contents comdat.
+//                                           0x00002000  // Reserved.
+//      IMAGE_SCN_MEM_PROTECTED - Obsolete   0x00004000
+#define IMAGE_SCN_NO_DEFER_SPEC_EXC          0x00004000  // Reset speculative exceptions handling bits in the TLB entries for this section.
+#define IMAGE_SCN_GPREL                      0x00008000  // Section content can be accessed relative to GP
+#define IMAGE_SCN_MEM_FARDATA                0x00008000
+//      IMAGE_SCN_MEM_SYSHEAP  - Obsolete    0x00010000
+#define IMAGE_SCN_MEM_PURGEABLE              0x00020000
+#define IMAGE_SCN_MEM_16BIT                  0x00020000
+#define IMAGE_SCN_MEM_LOCKED                 0x00040000
+#define IMAGE_SCN_MEM_PRELOAD                0x00080000
+
+#define IMAGE_SCN_ALIGN_1BYTES               0x00100000  //
+#define IMAGE_SCN_ALIGN_2BYTES               0x00200000  //
+#define IMAGE_SCN_ALIGN_4BYTES               0x00300000  //
+#define IMAGE_SCN_ALIGN_8BYTES               0x00400000  //
+#define IMAGE_SCN_ALIGN_16BYTES              0x00500000  // Default alignment if no others are specified.
+#define IMAGE_SCN_ALIGN_32BYTES              0x00600000  //
+#define IMAGE_SCN_ALIGN_64BYTES              0x00700000  //
+#define IMAGE_SCN_ALIGN_128BYTES             0x00800000  //
+#define IMAGE_SCN_ALIGN_256BYTES             0x00900000  //
+#define IMAGE_SCN_ALIGN_512BYTES             0x00A00000  //
+#define IMAGE_SCN_ALIGN_1024BYTES            0x00B00000  //
+#define IMAGE_SCN_ALIGN_2048BYTES            0x00C00000  //
+#define IMAGE_SCN_ALIGN_4096BYTES            0x00D00000  //
+#define IMAGE_SCN_ALIGN_8192BYTES            0x00E00000  //
+// Unused                                    0x00F00000
+#define IMAGE_SCN_ALIGN_MASK                 0x00F00000
+
+#define IMAGE_SCN_LNK_NRELOC_OVFL            0x01000000  // Section contains extended relocations.
+#define IMAGE_SCN_MEM_DISCARDABLE            0x02000000  // Section can be discarded.
+#define IMAGE_SCN_MEM_NOT_CACHED             0x04000000  // Section is not cachable.
+#define IMAGE_SCN_MEM_NOT_PAGED              0x08000000  // Section is not pageable.
+#define IMAGE_SCN_MEM_SHARED                 0x10000000  // Section is shareable.
+#define IMAGE_SCN_MEM_EXECUTE                0x20000000  // Section is executable.
+#define IMAGE_SCN_MEM_READ                   0x40000000  // Section is readable.
+#define IMAGE_SCN_MEM_WRITE                  0x80000000  // Section is writeable.
+~~~
+
+
 
 
 
