@@ -1,12 +1,12 @@
 1. vscode安装C/C++扩展包
 
-![image-20221228174916391](C:\Users\Administrator\Desktop\vscode配置msvc.assets\image-20221228174916391.png)
+![image-20221228174916391](.\vscode配置msvc.assets\image-20221228174916391.png)
 
 2. 安装msvc
 
 3. 打开**Developer Command Prompt for Visual Studio**
 
-![image-20221228180836342](C:\Users\Administrator\Desktop\vscode配置msvc.assets\image-20221228180836342.png)
+![image-20221228180836342](.\vscode配置msvc.assets\image-20221228180836342.png)
 
 4. 创建工程
 
