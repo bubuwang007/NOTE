@@ -103,13 +103,13 @@ Visual Studio 2005引入弃用警告insecure和POSIX函数。 不安全的函数
 #define NT_THREADS
 #define WITH_THREAD
 #ifndef NETSCAPE_PI
-#define USE_SOCKET
+	#define USE_SOCKET
 #endif
 ~~~
 
 定义了一些预定义头
 
-其中io.h
+其中io.h:
 
 ~~~c
 //
@@ -121,9 +121,8 @@ Visual Studio 2005引入弃用警告insecure和POSIX函数。 不安全的函数
 //
 #pragma once
 #ifndef _INC_IO // include guard for 3rd party interop
-#define _INC_IO
-
-#include <corecrt_io.h>
+    #define _INC_IO
+    #include <corecrt_io.h>
 #endif // _INC_IO
 ~~~
 
@@ -148,16 +147,62 @@ MS VC++ 7.0 _MSC_VER = 1300(VisualStudio .NET)
 MS VC++ 6.0 _MSC_VER = 1200(VisualStudio 98)
 MS VC++ 5.0 _MSC_VER = 1100(VisualStudio 97)
 */
-
 #ifdef _MSC_VER
-/* We want COMPILER to expand to a string containing _MSC_VER's *value*.
- * This is horridly tricky, because the stringization operator only works
- * on macro arguments, and doesn't evaluate macros passed *as* arguments.
- * Attempts simpler than the following appear doomed to produce "_MSC_VER"
- * literally in the string.
+    /* We want COMPILER to expand to a string containing _MSC_VER's *value*.
+     * This is horridly tricky, because the stringization operator only works
+     * on macro arguments, and doesn't evaluate macros passed *as* arguments.
+     * Attempts simpler than the following appear doomed to produce "_MSC_VER"
+     * literally in the string.
+     扩展一个包含_MSC_VER的字符串宏
+     */ 
+    #define _Py_PASTE_VERSION(SUFFIX) \
+            ("[MSC v." _Py_STRINGIZE(_MSC_VER) " " SUFFIX "]")
+    /* e.g., this produces, after compile-time string catenation,
+     *      ("[MSC v.1200 32 bit (Intel)]")
+     *
+     * _Py_STRINGIZE(_MSC_VER) expands to
+     * _Py_STRINGIZE1((_MSC_VER)) expands to
+     * _Py_STRINGIZE2(_MSC_VER) but as this call is the result of token-pasting
+     *      it's scanned again for macros and so further expands to (under MSVC 6)
+     * _Py_STRINGIZE2(1200) which then expands to
+     * "1200"
+     */
+    #define _Py_STRINGIZE(X) _Py_STRINGIZE1((X))
+    #define _Py_STRINGIZE1(X) _Py_STRINGIZE2 ## X
+    #define _Py_STRINGIZE2(X) #X
+    // _Py_STRINGIZE2(X) #X ==》 _Py_STRINGIZE2(helloworld) = _Py_STRINGIZE2("helloworld")
+    // _Py_STRINGIZE1(X) _Py_STRINGIZE2 ## X ==》 _Py_STRINGIZE2X 拼接
+
+
+    #ifdef _WIN64
+        #define MS_WIN64
+    // 定义MS_WIN64
+
+#endif
+~~~
+
+
+
+~~~c
+/* set the COMPILER and support tier
+ * 设置编译器和支持层
+ * win_amd64 MSVC (x86_64-pc-windows-msvc): 1
+ * win32 MSVC (i686-pc-windows-msvc): 1
+ * win_arm64 MSVC (aarch64-pc-windows-msvc): 3
+ * other archs and ICC: 0
  */
-#define _Py_PASTE_VERSION(SUFFIX) \
-        ("[MSC v." _Py_STRINGIZE(_MSC_VER) " " SUFFIX "]")
+#ifdef MS_WIN64
+    #if defined(_M_X64) || defined(_M_AMD64)
+        #if defined(__INTEL_COMPILER)
+            #define COMPILER ("[ICC v." _Py_STRINGIZE(__INTEL_COMPILER) " 64 bit (amd64) with MSC v." _Py_STRINGIZE(_MSC_VER) " 			CRT]")
+            #define PY_SUPPORT_TIER 0
+        #else
+            #define COMPILER _Py_PASTE_VERSION("64 bit (AMD64)")
+            #define PY_SUPPORT_TIER 1
+        #endif /* __INTEL_COMPILER */
+		#define PYD_PLATFORM_TAG "win_amd64"
+	#elif defined(_M_ARM64)
+
 
 ~~~
 
