@@ -177,8 +177,7 @@ MS VC++ 5.0 _MSC_VER = 1100(VisualStudio 97)
     #ifdef _WIN64
         #define MS_WIN64
     // 定义MS_WIN64
-
-#endif
+	#endif
 ~~~
 
 
@@ -234,9 +233,127 @@ MS VC++ 5.0 _MSC_VER = 1100(VisualStudio 97)
 	#ifndef NTDDI_VERSION
     	#define NTDDI_VERSION Py_NTDDI
     #endif
+	#ifndef WINVER
+		#define WINVER Py_WINVER
+	#endif
+	#ifndef _WIN32_WINNT
+		#define _WIN32_WINNT Py_WINVER
+	#endif
+#endif
+
+/* _W64 is not defined for VC6 or eVC4 */
+#ifndef _W64
+	#define _W64
+#endif
 ~~~
 
 
+
+~~~c
+/* Define like size_t, omitting the "unsigned" */
+#ifdef MS_WIN64
+	typedef __int64 Py_ssize_t;
+	#define PY_SSIZE_T_MAX LLONG_MAX
+#else
+	typedef _W64 int Py_ssize_t;
+	#define PY_SSIZE_T_MAX INT_MAX
+#endif
+#define HAVE_PY_SSIZE_T 1
+
+#if defined(MS_WIN32) && !defined(MS_WIN64)
+	#if defined(_M_IX86)
+		#if defined(__INTEL_COMPILER)
+			#define COMPILER ("[ICC v." _Py_STRINGIZE(__INTEL_COMPILER) " 32 bit (Intel) with MSC v." _Py_STRINGIZE(_MSC_VER) " 			CRT]")
+			#define PY_SUPPORT_TIER 0
+		#else
+			#define COMPILER _Py_PASTE_VERSION("32 bit (Intel)")
+			#define PY_SUPPORT_TIER 1
+		#endif /* __INTEL_COMPILER */
+		#define PYD_PLATFORM_TAG "win32"
+    #elif defined(_M_ARM)
+        #define COMPILER _Py_PASTE_VERSION("32 bit (ARM)")
+        #define PYD_PLATFORM_TAG "win_arm32"
+        #define PY_SUPPORT_TIER 0
+	#else
+		#define COMPILER _Py_PASTE_VERSION("32 bit (Unknown)")
+		#define PY_SUPPORT_TIER 0
+	#endif
+#endif /* MS_WIN32 && !MS_WIN64 */
+			
+~~~
+
+
+
+~~~c
+typedef int pid_t;
+
+/* define some ANSI types that are not defined in earlier Win headers */
+#if _MSC_VER >= 1200
+/* This file only exists in VC 6.0 or higher */
+	#include <basetsd.h>
+#endif
+
+#endif /* _MSC_VER */ //结束_MSC_VER
+~~~
+
+basetsd.h	Type definitions for the basic sized types.  基本数据类型定义
+
+
+
+~~~c
+/* ------------------------------------------------------------------------*/
+/* mingw and mingw-w64 define __MINGW32__ */
+#ifdef __MINGW32__
+	#ifdef _WIN64
+		#define MS_WIN64
+	#endif
+#endif /* __MINGW32__*/
+~~~
+
+
+
+~~~c
+/* ------------------------------------------------------------------------*/
+/* egcs/gnu-win32 defines __GNUC__ and _WIN32 */
+#if defined(__GNUC__) && defined(_WIN32)
+/* XXX These defines are likely incomplete, but should be easy to fix.
+   They should be complete enough to build extension modules. */
+/* Suggested by Rene Liebscher <R.Liebscher@gmx.de> to avoid a GCC 2.91.*
+   bug that requires structure imports.  More recent versions of the
+   compiler don't exhibit this bug.
+*/
+    #if (__GNUC__==2) && (__GNUC_MINOR__<=91)
+    	#warning "Please use an up-to-date version of gcc! (>2.91 recommended)"
+    #endif
+
+    #define COMPILER "[gcc]"
+    #define PY_LONG_LONG long long
+    #define PY_LLONG_MIN LLONG_MIN
+    #define PY_LLONG_MAX LLONG_MAX
+    #define PY_ULLONG_MAX ULLONG_MAX
+#endif /* GNUC */
+~~~
+
+
+
+~~~c
+/* ------------------------------------------------------------------------*/
+/* lcc-win32 defines __LCC__ */
+#if defined(__LCC__)
+/* XXX These defines are likely incomplete, but should be easy to fix.
+   They should be complete enough to build extension modules. */
+
+#define COMPILER "[lcc-win32]"
+typedef int pid_t;
+/* __declspec() is supported here too - do nothing to get the defaults */
+
+#endif /* LCC */
+
+/* ------------------------------------------------------------------------*/
+/* End of compilers - finish up */
+~~~
+
+编译器宏定义结束
 
 
 
