@@ -202,11 +202,39 @@ MS VC++ 5.0 _MSC_VER = 1100(VisualStudio 97)
         #endif /* __INTEL_COMPILER */
 		#define PYD_PLATFORM_TAG "win_amd64"
 	#elif defined(_M_ARM64)
+		#define COMPILER _Py_PASTE_VERSION("64 bit (ARM64)")
+        #define PY_SUPPORT_TIER 3
+        #define PYD_PLATFORM_TAG "win_arm64"
+	#else
+		#define COMPILER _Py_PASTE_VERSION("64 bit (Unknown)")
+		#define PY_SUPPORT_TIER 0
+	#endif
+#endif
 
-
+/* set the version macros for the windows headers */
+/* Python 3.9+ requires Windows 8 or greater */
+#define Py_WINVER 0x0602 /* _WIN32_WINNT_WIN8 */
+#define Py_NTDDI NTDDI_WIN8
 ~~~
 
+设置windows相关宏定义
 
+
+
+~~~c
+/* 
+	We only set these values when building Python - we don't want to force
+	these values on extensions, as that will affect the prototypes and
+	structures exposed in the Windows headers. Even when building Python, we
+	allow a single source file to override this - they may need access to
+	structures etc so it can optionally use new Windows features if it
+	determines at runtime they are available.
+*/
+#if defined(Py_BUILD_CORE) || defined(Py_BUILD_CORE_BUILTIN) || defined(Py_BUILD_CORE_MODULE)
+	#ifndef NTDDI_VERSION
+    	#define NTDDI_VERSION Py_NTDDI
+    #endif
+~~~
 
 
 
