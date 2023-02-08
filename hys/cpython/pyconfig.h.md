@@ -357,3 +357,96 @@ typedef int pid_t;
 
 
 
+~~~c
+#ifndef NO_STDIO_H
+#       include <stdio.h>
+#endif
+
+/* 64 bit ints are usually spelt __int64 unless compiler has overridden */
+#ifndef PY_LONG_LONG
+	#define PY_LONG_LONG __int64
+	#define PY_LLONG_MAX _I64_MAX
+	#define PY_LLONG_MIN _I64_MIN
+	#define PY_ULLONG_MAX _UI64_MAX
+#endif
+
+/* For Windows the Python core is in a DLL by default. Test Py_NO_ENABLE_SHARED to find out. Also support MS_NO_COREDLL for b/w compat */
+#if !defined(MS_NO_COREDLL) && !defined(Py_NO_ENABLE_SHARED)
+	#define Py_ENABLE_SHARED 1 /* standard symbol for shared library */
+	#define MS_COREDLL       /* deprecated old symbol */
+#endif /* !MS_NO_COREDLL && ... */
+
+~~~
+
+
+
+~~~
+/*  All windows compilers that use this header support __declspec */
+#define HAVE_DECLSPEC_DLL
+
+/* For an MSVC DLL, we can nominate the .lib files used by extensions */
+#ifdef MS_COREDLL
+#       if !defined(Py_BUILD_CORE) && !defined(Py_BUILD_CORE_BUILTIN)
+                /* not building the core - must be an ext */
+#               if defined(_MSC_VER)
+                        /* So MSVC users need not specify the .lib
+                        file in their Makefile (other compilers are
+                        generally taken care of by distutils.) */
+#                       if defined(_DEBUG)
+#                               pragma comment(lib,"python312_d.lib")
+#                       elif defined(Py_LIMITED_API)
+#                               pragma comment(lib,"python3.lib")
+#                       else
+#                               pragma comment(lib,"python312.lib")
+#                       endif /* _DEBUG */
+#               endif /* _MSC_VER */
+#       endif /* Py_BUILD_CORE */
+#endif /* MS_COREDLL */
+~~~
+
+
+
+~~~c
+#if defined(MS_WIN64)
+/* maintain "win32" sys.platform for backward compatibility of Python code,
+   the Win64 API should be close enough to the Win32 API to make this
+   preferable */
+    #define PLATFORM "win32"
+    #define SIZEOF_VOID_P 8
+    #define SIZEOF_TIME_T 8
+    #define SIZEOF_OFF_T 4
+    #define SIZEOF_FPOS_T 8
+    #define SIZEOF_HKEY 8
+    #define SIZEOF_SIZE_T 8
+    #define ALIGNOF_SIZE_T 8
+    /* configure.ac defines HAVE_LARGEFILE_SUPPORT iff
+       sizeof(off_t) > sizeof(long), and sizeof(long long) >= sizeof(off_t).
+       On Win64 the second condition is not true, but if fpos_t replaces off_t
+       then this is true. The uses of HAVE_LARGEFILE_SUPPORT imply that Win64
+       should define this. */
+    #define HAVE_LARGEFILE_SUPPORT
+
+#elif defined(MS_WIN32)
+    #define PLATFORM "win32"
+    #define HAVE_LARGEFILE_SUPPORT
+    #define SIZEOF_VOID_P 4
+    #define SIZEOF_OFF_T 4
+    #define SIZEOF_FPOS_T 8
+    #define SIZEOF_HKEY 4
+    #define SIZEOF_SIZE_T 4
+    /* MS VS2005 changes time_t to a 64-bit type on all platforms */
+
+	#if defined(_MSC_VER) && _MSC_VER >= 1400
+		#define SIZEOF_TIME_T 8
+	#else
+		#define SIZEOF_TIME_T 4
+	#endif
+#endif
+~~~
+
+
+
+~~~c
+
+~~~
+
