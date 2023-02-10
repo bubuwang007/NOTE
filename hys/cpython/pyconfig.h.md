@@ -442,11 +442,397 @@ typedef int pid_t;
 		#define SIZEOF_TIME_T 4
 	#endif
 #endif
+
+#ifdef _DEBUG
+#       define Py_DEBUG
+#endif
 ~~~
 
 
 
 ~~~c
+#ifdef MS_WIN32
 
+    #define SIZEOF_SHORT 2
+    #define SIZEOF_INT 4
+    #define SIZEOF_LONG 4
+    #define ALIGNOF_LONG 4
+    #define SIZEOF_LONG_LONG 8
+    #define SIZEOF_DOUBLE 8
+    #define SIZEOF_FLOAT 4
+
+    /* VC 7.1 has them and VC 6.0 does not.  VC 6.0 has a version number of 1200.
+       Microsoft eMbedded Visual C++ 4.0 has a version number of 1201 and doesn't
+       define these.
+       If some compiler does not provide them, modify the #if appropriately. */
+
+    #if defined(_MSC_VER)
+        #if _MSC_VER > 1300
+            #define HAVE_UINTPTR_T 1
+            #define HAVE_INTPTR_T 1
+        #else
+            /* VC6, VS 2002 and eVC4 don't support the C99 LL suffix for 64-bit integer literals */
+            #define Py_LL(x) x##I64
+        #endif  /* _MSC_VER > 1300  */
+    #endif  /* _MSC_VER */
+#endif
+
+/* define signed and unsigned exact-width 32-bit and 64-bit types, used in the
+   implementation of Python integers. */
+#define PY_UINT32_T uint32_t
+#define PY_UINT64_T uint64_t
+#define PY_INT32_T int32_t
+#define PY_INT64_T int64_t
+~~~
+
+
+
+~~~c
+/* Fairly standard from here! */
+
+/* Define if on AIX 3.
+   System headers sometimes define this.
+   We just want to avoid a redefinition error message.
+*/
+#ifndef _ALL_SOURCE
+/* #undef _ALL_SOURCE */
+#endif
+
+/* Define to empty if the keyword does not work.  */
+/* #define const  */
+
+/* Define to 1 if you have the <conio.h> header file. */
+#define HAVE_CONIO_H 1
+
+/* Define to 1 if you have the <direct.h> header file. */
+#define HAVE_DIRECT_H 1
+
+/* Define to 1 if you have the declaration of `tzname', and to 0 if you don't.*/
+#define HAVE_DECL_TZNAME 1
+
+/* Define if you have dirent.h.  */
+/* #define DIRENT 1 */
+/* Define to the type of elements in the array set by `getgroups'.
+   Usually this is either `int' or `gid_t'.  */
+/* #undef GETGROUPS_T */
+
+/* Define to `int' if <sys/types.h> doesn't define.  */
+/* #undef gid_t */
+
+/* Define if your struct tm has tm_zone.  */
+/* #undef HAVE_TM_ZONE */
+
+/* Define if you don't have tm_zone but do have the external array
+   tzname.  */
+#define HAVE_TZNAME
+
+/* Define to `int' if <sys/types.h> doesn't define.  */
+/* #undef mode_t */
+
+/* Define if you don't have dirent.h, but have ndir.h.  */
+/* #undef NDIR */
+
+/* Define to `long' if <sys/types.h> doesn't define.  */
+/* #undef off_t */
+
+/* Define to `int' if <sys/types.h> doesn't define.  */
+/* #undef pid_t */
+
+/* Define if the system does not provide POSIX.1 features except
+   with this defined.  */
+/* #undef _POSIX_1_SOURCE */
+
+/* Define if you need to in order for stat and other things to work.  */
+/* #undef _POSIX_SOURCE */
+
+/* Define as the return type of signal handlers (int or void).  */
+#define RETSIGTYPE void
+
+/* Define to `unsigned' if <sys/types.h> doesn't define.  */
+/* #undef size_t */
+
+/* Define if you have the ANSI C header files.  */
+#define STDC_HEADERS 1
+
+/* Define if you don't have dirent.h, but have sys/dir.h.  */
+/* #undef SYSDIR */
+
+/* Define if you don't have dirent.h, but have sys/ndir.h.  */
+/* #undef SYSNDIR */
+
+/* Define if you can safely include both <sys/time.h> and <time.h>.  */
+/* #undef TIME_WITH_SYS_TIME */
+
+/* Define if your <sys/time.h> declares struct tm.  */
+/* #define TM_IN_SYS_TIME 1 */
+
+/* Define to `int' if <sys/types.h> doesn't define.  */
+/* #undef uid_t */
+
+/* Define if the closedir function returns void instead of int.  */
+/* #undef VOID_CLOSEDIR */
+
+/* Define if getpgrp() must be called as getpgrp(0)
+   and (consequently) setpgrp() as setpgrp(0, 0). */
+/* #undef GETPGRP_HAVE_ARGS */
+
+/* Define this if your time.h defines altzone */
+/* #define HAVE_ALTZONE */
+
+/* Define if you have the putenv function.  */
+#define HAVE_PUTENV
+
+/* Define if your compiler supports function prototypes */
+#define HAVE_PROTOTYPES
+
+/* Define if  you can safely include both <sys/select.h> and <sys/time.h>
+   (which you can't on SCO ODT 3.0). */
+/* #undef SYS_SELECT_WITH_SYS_TIME */
+
+/* Define if you want build the _decimal module using a coroutine-local rather
+   than a thread-local context */
+#define WITH_DECIMAL_CONTEXTVAR 1
+
+/* Define if you want documentation strings in extension modules */
+#define WITH_DOC_STRINGS 1
+
+/* Define if you want to compile in rudimentary thread support */
+/* #undef WITH_THREAD */
+
+/* Define if you want to use the GNU readline library */
+/* #define WITH_READLINE 1 */
+
+/* Use Python's own small-block memory-allocator. */
+#define WITH_PYMALLOC 1
+
+/* Define if you want to compile in object freelists optimization */
+#define WITH_FREELISTS 1
+
+/* Define if you have clock.  */
+/* #define HAVE_CLOCK */
+
+/* Define when any dynamic module loading is enabled */
+#define HAVE_DYNAMIC_LOADING
+
+/* Define if you have ftime.  */
+#define HAVE_FTIME
+
+/* Define if you have getpeername.  */
+#define HAVE_GETPEERNAME
+
+/* Define if you have getpgrp.  */
+/* #undef HAVE_GETPGRP */
+
+/* Define if you have getpid.  */
+#define HAVE_GETPID
+
+/* Define if you have gettimeofday.  */
+/* #undef HAVE_GETTIMEOFDAY */
+
+/* Define if you have getwd.  */
+/* #undef HAVE_GETWD */
+
+/* Define if you have lstat.  */
+/* #undef HAVE_LSTAT */
+
+/* Define if you have the mktime function.  */
+#define HAVE_MKTIME
+
+/* Define if you have nice.  */
+/* #undef HAVE_NICE */
+
+/* Define if you have readlink.  */
+/* #undef HAVE_READLINK */
+
+/* Define if you have setpgid.  */
+/* #undef HAVE_SETPGID */
+
+/* Define if you have setpgrp.  */
+/* #undef HAVE_SETPGRP */
+
+/* Define if you have setsid.  */
+/* #undef HAVE_SETSID */
+
+/* Define if you have setvbuf.  */
+#define HAVE_SETVBUF
+
+/* Define if you have siginterrupt.  */
+/* #undef HAVE_SIGINTERRUPT */
+
+/* Define to 1 if you have the `shutdown' function. */
+#define HAVE_SHUTDOWN 1
+
+/* Define if you have symlink.  */
+/* #undef HAVE_SYMLINK */
+
+/* Define if you have tcgetpgrp.  */
+/* #undef HAVE_TCGETPGRP */
+
+/* Define if you have tcsetpgrp.  */
+/* #undef HAVE_TCSETPGRP */
+
+/* Define if you have times.  */
+/* #undef HAVE_TIMES */
+
+/* Define to 1 if you have the `umask' function. */
+#define HAVE_UMASK 1
+
+/* Define if you have uname.  */
+/* #undef HAVE_UNAME */
+
+/* Define if you have waitpid.  */
+/* #undef HAVE_WAITPID */
+
+/* Define to 1 if you have the `wcsftime' function. */
+#if defined(_MSC_VER) && _MSC_VER >= 1310
+#define HAVE_WCSFTIME 1
+#endif
+
+/* Define to 1 if you have the `wcscoll' function. */
+#define HAVE_WCSCOLL 1
+
+/* Define to 1 if you have the `wcsxfrm' function. */
+#define HAVE_WCSXFRM 1
+
+/* Define if the zlib library has inflateCopy */
+#define HAVE_ZLIB_COPY 1
+
+/* Define if you have the <dlfcn.h> header file.  */
+/* #undef HAVE_DLFCN_H */
+
+/* Define to 1 if you have the <errno.h> header file. */
+#define HAVE_ERRNO_H 1
+
+/* Define if you have the <fcntl.h> header file.  */
+#define HAVE_FCNTL_H 1
+
+/* Define to 1 if you have the <process.h> header file. */
+#define HAVE_PROCESS_H 1
+
+/* Define to 1 if you have the <signal.h> header file. */
+#define HAVE_SIGNAL_H 1
+
+/* Define if you have the <stddef.h> header file.  */
+#define HAVE_STDDEF_H 1
+
+/* Define if you have the <sys/audioio.h> header file.  */
+/* #undef HAVE_SYS_AUDIOIO_H */
+
+/* Define if you have the <sys/param.h> header file.  */
+/* #define HAVE_SYS_PARAM_H 1 */
+
+/* Define if you have the <sys/select.h> header file.  */
+/* #define HAVE_SYS_SELECT_H 1 */
+
+/* Define to 1 if you have the <sys/stat.h> header file.  */
+#define HAVE_SYS_STAT_H 1
+
+/* Define if you have the <sys/time.h> header file.  */
+/* #define HAVE_SYS_TIME_H 1 */
+
+/* Define if you have the <sys/times.h> header file.  */
+/* #define HAVE_SYS_TIMES_H 1 */
+
+/* Define to 1 if you have the <sys/types.h> header file.  */
+#define HAVE_SYS_TYPES_H 1
+
+/* Define if you have the <sys/un.h> header file.  */
+/* #define HAVE_SYS_UN_H 1 */
+
+/* Define if you have the <sys/utime.h> header file.  */
+/* #define HAVE_SYS_UTIME_H 1 */
+
+/* Define if you have the <sys/utsname.h> header file.  */
+/* #define HAVE_SYS_UTSNAME_H 1 */
+
+/* Define if you have the <unistd.h> header file.  */
+/* #define HAVE_UNISTD_H 1 */
+
+/* Define if you have the <utime.h> header file.  */
+/* #define HAVE_UTIME_H 1 */
+
+/* Define if the compiler provides a wchar.h header file. */
+#define HAVE_WCHAR_H 1
+
+/* The size of `wchar_t', as computed by sizeof. */
+#define SIZEOF_WCHAR_T 2
+
+/* The size of `_Bool', as computed by sizeof. */
+#define SIZEOF__BOOL 1
+
+/* The size of `pid_t', as computed by sizeof. */
+#define SIZEOF_PID_T SIZEOF_INT
+
+/* Define if you have the dl library (-ldl).  */
+/* #undef HAVE_LIBDL */
+
+/* Define if you have the mpc library (-lmpc).  */
+/* #undef HAVE_LIBMPC */
+
+/* Define if you have the nsl library (-lnsl).  */
+#define HAVE_LIBNSL 1
+
+/* Define if you have the seq library (-lseq).  */
+/* #undef HAVE_LIBSEQ */
+
+/* Define if you have the socket library (-lsocket).  */
+#define HAVE_LIBSOCKET 1
+
+/* Define if you have the sun library (-lsun).  */
+/* #undef HAVE_LIBSUN */
+
+/* Define if you have the termcap library (-ltermcap).  */
+/* #undef HAVE_LIBTERMCAP */
+
+/* Define if you have the termlib library (-ltermlib).  */
+/* #undef HAVE_LIBTERMLIB */
+
+/* Define if you have the thread library (-lthread).  */
+/* #undef HAVE_LIBTHREAD */
+
+/* WinSock does not use a bitmask in select, and uses
+   socket handles greater than FD_SETSIZE */
+#define Py_SOCKET_FD_CAN_BE_GE_FD_SETSIZE
+
+/* Define if C doubles are 64-bit IEEE 754 binary format, stored with the
+   least significant byte first */
+#define DOUBLE_IS_LITTLE_ENDIAN_IEEE754 1
+
+/* Define to 1 if you have the `erf' function. */
+#define HAVE_ERF 1
+
+/* Define to 1 if you have the `erfc' function. */
+#define HAVE_ERFC 1
+
+// netdb.h functions (provided by winsock.h)
+#define HAVE_GETHOSTNAME 1
+#define HAVE_GETHOSTBYADDR 1
+#define HAVE_GETHOSTBYNAME 1
+#define HAVE_GETPROTOBYNAME 1
+#define HAVE_GETSERVBYNAME 1
+#define HAVE_GETSERVBYPORT 1
+// sys/socket.h functions (provided by winsock.h)
+#define HAVE_INET_PTON 1
+#define HAVE_INET_NTOA 1
+#define HAVE_ACCEPT 1
+#define HAVE_BIND 1
+#define HAVE_CONNECT 1
+#define HAVE_GETSOCKNAME 1
+#define HAVE_LISTEN 1
+#define HAVE_RECVFROM 1
+#define HAVE_SENDTO 1
+#define HAVE_SETSOCKOPT 1
+#define HAVE_SOCKET 1
+
+/* Define to 1 if you have the `dup' function. */
+#define HAVE_DUP 1
+
+/* framework name */
+#define _PYTHONFRAMEWORK ""
+
+/* Define if libssl has X509_VERIFY_PARAM_set1_host and related function */
+#define HAVE_X509_VERIFY_PARAM_SET1_HOST 1
+
+#endif /* !Py_CONFIG_H */
 ~~~
 
