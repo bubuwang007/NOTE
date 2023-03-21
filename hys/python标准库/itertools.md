@@ -34,7 +34,7 @@ print(li)
 
 
 
-## 根据最短输入序列长度停止的迭代器
+## 根据最短输入序列长度停止的迭代器	
 
 |                            迭代器                            |            实参             |                      结果                      |                           示例                            |
 | :----------------------------------------------------------: | :-------------------------: | :--------------------------------------------: | :-------------------------------------------------------: |
@@ -96,3 +96,34 @@ for i in it.takewhile(lambda x: x < 5, li):
     print(i)
 ~~~
 
+
+
+## 排列组合迭代器
+
+|                            迭代器                            |        实参        |                 结果                  |
+| :----------------------------------------------------------: | :----------------: | :-----------------------------------: |
+| [`product()`](https://www.bookstack.cn/read/python-3.10.0-zh/d230b7788e5c2742.md#itertools.product) | p, q, … [repeat=1] |     笛卡尔积，相当于嵌套的for循环     |
+| [`permutations()`](https://www.bookstack.cn/read/python-3.10.0-zh/d230b7788e5c2742.md#itertools.permutations) |       p[, r]       | 长度r元组，所有可能的排列，无重复元素 |
+| [`combinations()`](https://www.bookstack.cn/read/python-3.10.0-zh/d230b7788e5c2742.md#itertools.combinations) |        p, r        |      长度r元组，有序，无重复元素      |
+| [`combinations_with_replacement()`](https://www.bookstack.cn/read/python-3.10.0-zh/d230b7788e5c2742.md#itertools.combinations_with_replacement) |        p, r        |      长度r元组，有序，元素可重复      |
+
+|                    例子                    |                       结果                        |
+| :----------------------------------------: | :-----------------------------------------------: |
+|        `product(‘ABCD’, repeat=2)`         | `AA AB AC AD BA BB BC BD CA CB CC CD DA DB DC DD` |
+|         `permutations(‘ABCD’, 2)`          |       `AB AC AD BA BC BD CA CB CD DA DB DC`       |
+|         `combinations(‘ABCD’, 2)`          |                `AB AC AD BC BD CD`                |
+| `combinations_with_replacement(‘ABCD’, 2)` |          `AA AB AC AD BB BC BD CC CD DD`          |
+
+
+
+## itertools 配方
+
+本节将展示如何使用现有的 itertools 作为基础构件来创建扩展的工具集。
+
+基本上所有这些西方和许许多多其他的配方都可以通过 Python Package Index 上的 [more-itertools 项目](https://pypi.org/project/more-itertools/) 来安装:
+
+```
+pip install more-itertools
+```
+
+扩展的工具提供了与底层工具集相同的高性能。保持了超棒的内存利用率，因为一次只处理一个元素，而不是将整个可迭代对象加载到内存。代码量保持得很小，以函数式风格将这些工具连接在一起，有助于消除临时变量。速度依然很快，因为倾向于使用“矢量化”构件来取代解释器开销大的 for 循环和 [generator](https://www.bookstack.cn/read/python-3.10.0-zh/bd6b000ceb39b61e.md#term-generator) 。
